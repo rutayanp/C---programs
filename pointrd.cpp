@@ -12,7 +12,7 @@
 #include <CGAL/random_selection.h>
 #include <stdlib.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 using namespace std;
 using namespace CGAL;
@@ -32,7 +32,7 @@ class points_2d {
 		{
 			x = i;
 			y = j;
-			if(DEBUG == 0) 
+			if(DEBUG == 1) 
 				cout<<x<<","<<y<<"\n";
 		}
 
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 			}
 			
 			if(temp == 0){
-				if(DEBUG == 0) cout<<x<<","<<y<<"\n";
+				if(DEBUG == 1) cout<<x<<","<<y<<"\n";
 				p = new points_2d;
 				p->setValue(atof(x.c_str()),atof(y.c_str()));
 				
