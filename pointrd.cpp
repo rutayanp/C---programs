@@ -40,7 +40,10 @@ class points_2d {
 		{
 			cout<<x<<","<<y<<"\n";
 		}
+
 };
+
+bool myfunction (Point a,Point b) { return ((a.x()<b.x()) || (a.x()==b.x()&&a.y()<b.y())); }
 
 int main(int argc, char *argv[])
 {
@@ -57,6 +60,7 @@ int main(int argc, char *argv[])
 	
 	Random_points_in_square_2<Point,Creator> g(1,default_random);
 	CGAL::copy_n( g, in_size, std::back_inserter(points));
+	sort(points.begin(), points.end(), myfunction);
 	for (int i=0; i < in_size; i++){	
 		fout<<points[i].x()<<","<<points[i].y()<<"\n";
 		if(DEBUG == 1)
