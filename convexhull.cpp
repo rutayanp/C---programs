@@ -3,7 +3,7 @@
 #include <vector>
 #include <stack>
 
-#define DEBUG 1
+#define DEBUG 0
 
 using namespace std;
 
@@ -55,37 +55,45 @@ int second (std::stack<int> s)
 	s.pop();
 	second = s.top();
 	s.push(tmp);
+
+	if (DEBUG == 1)
+		cout << "the element below top is : " << second <<"\n";
+
 	return second;
 }
 
 void upperch (vector<points_2d> &up)
 {
 	int i, first = 0;
+	int size; //size of the result stack
 	std::stack<int> s;
-	//vector<points_2d> temp;
+
 	s.push(first); //push the index of first element in the stack
 	s.push(first + 1);	//push the index of second element in the stack
 
-	for (i= 2 ; i < up.size(); i++){
-		while (s.size() >1 && crossproduct(up, second(s), i, s.top()) > 0){
+	for (i= first + 2 ; i < up.size(); i++){
+		while (s.size() > 1 && crossproduct(up, second(s), i, s.top()) > 0){
+			if(DEBUG == 1)
+				cout << "popped element" << s.top() << "\n";
 			s.pop();
 		}
 		s.push(i);
 	}
 
+	if (DEBUG == 1)
+		cout << "size of stack " << s.size() << "\n";
+
+	size = s.size();
+
 	int index; //for debug purpose only
 	if(DEBUG == 1){
 		cout << "hello\n";
-		for(i = 0; i < s.size() ; i++){
+		for(i = 0; i < size ; i++){
 			index = s.top();
 			cout << up[index].x() << "," << up[index].y() << "\n";
-			//temp.push_back(up[index]);
 			s.pop();
 		}
 
-		/*for(i = 0; i < s.size ; i++){
-			cout << temp[i].x() << "," << temp[i].y() << "\n";
-		}*/
 	}
 
 }
@@ -95,9 +103,9 @@ points_2d hullupperpoints(vector<points_2d> &v)
 	int i;
 	double tmp;
 	bool val;
-	for(i=1; i<insize-1; i++){
+	for(i=0; i<insize; i++){
 		tmp = crossproduct(v, 0, i, 9);
-		if(tmp > 0){
+		if(tmp >= 0){
 			upoints.push_back(v[i]);
 		}
 	}
@@ -126,10 +134,10 @@ int main(int argc, char *argv[])
 	p[0].setVal(0,0);
 	p[1].setVal(0.5,0.5);
 	p[2].setVal(1,-0.5);
-	p[3].setVal(1,3);
+	p[3].setVal(1,7);
 	p[4].setVal(1.5, -2);
 	p[5].setVal(1.8, -3);
-	p[6].setVal(2,1);
+	p[6].setVal(2,8);
 	p[7].setVal(3,4);
 	p[8].setVal(3.5,7);
 	p[9].setVal(4,-0.2);
