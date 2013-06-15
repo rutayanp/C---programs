@@ -145,11 +145,11 @@ int main(int argc, char *argv[])
 	}
 
 	if(DEBUG == 1){
-			cout<<"------------\n";
-			for(int i=0; i<insize;i++){
-				cout<<points[i].x()<<","<<points[i].y()<<"\n";
-			}
+		cout<<"------------\n";
+		for(int i=0; i<insize;i++){
+			cout<<points[i].x()<<","<<points[i].y()<<"\n";
 		}
+	}
 
 	hullupperpoints(points);
 	return 0;
