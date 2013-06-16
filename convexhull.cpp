@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <vector>
 #include <stack>
+#include <omp.h>
+#include <stdio.h>
 
-#define DEBUG 0
+#define DEBUG 1
 
 using namespace std;
 
@@ -38,10 +40,13 @@ public:
 };
 
 //GLOBAL VARIABLES
-int insize; //total no. of points in input
-vector<points_2d> upoints; //upper points
+int insize;						//total no. of points in input
+int nthreads, tid;
+int size_up; 					//no. of elements in the upoints
+points_2d *upoints;
+//vector<points_2d> upoints;	//upper points
 
-double crossproduct(vector<points_2d> &v, int p0, int p1, int p2)
+double crossproduct(points_2d *v, int p0, int p1, int p2)
 {
 	double crossproduct;
 	crossproduct = ((v[p2].x() - v[p0].x()) * (v[p1].y() - v[p0].y())) - ((v[p1].x() - v[p0].x()) * (v[p2].y() - v[p0].y()));
@@ -57,27 +62,33 @@ int second (std::stack<int> s)
 	s.push(tmp);
 
 	if (DEBUG == 1)
-		cout << "the element below top is : " << second <<"\n";
+		cout << "the 2nd element is : " << second <<"\n";
 
 	return second;
 }
 
-void upperch (vector<points_2d> &up)
+void upperch (points_2d *up)
 {
 	int i, first = 0;
 	int size; //size of the result stack
 	std::stack<int> s;
+	int blocksize;
+
+	//blocksize = up.size()/nthreads;
+	//first = tid * blocksize;
 
 	s.push(first); //push the index of first element in the stack
 	s.push(first + 1);	//push the index of second element in the stack
-
-	for (i= first + 2 ; i < up.size(); i++){
-		while (s.size() > 1 && crossproduct(up, second(s), i, s.top()) > 0){
-			if(DEBUG == 1)
-				cout << "popped element" << s.top() << "\n";
-			s.pop();
+//	#pragma omp parallel private(i)
+	{
+		for (i= first + 2 ; i < first + size_up; i++){
+			while (s.size() > 1 && crossproduct(up, second(s), i, s.top()) > 0){
+				if(DEBUG == 1)
+					cout << "popped element" << s.top() << "\n";
+				s.pop();
+			}
+			s.push(i);
 		}
-		s.push(i);
 	}
 
 	if (DEBUG == 1)
@@ -87,7 +98,7 @@ void upperch (vector<points_2d> &up)
 
 	int index; //for debug purpose only
 	if(DEBUG == 1){
-		cout << "hello\n";
+		cout << "-------\n";
 		for(i = 0; i < size ; i++){
 			index = s.top();
 			cout << up[index].x() << "," << up[index].y() << "\n";
@@ -98,26 +109,32 @@ void upperch (vector<points_2d> &up)
 
 }
 
-points_2d hullupperpoints(vector<points_2d> &v)
+points_2d hullupperpoints(points_2d *v)
 {
-	int i;
+	int i, j=0;
 	double tmp;
 	bool val;
-	for(i=0; i<insize; i++){
-		tmp = crossproduct(v, 0, i, 9);
-		if(tmp >= 0){
-			upoints.push_back(v[i]);
+	//points_2d upoints[insize];
+	upoints = new points_2d[insize];
+	#pragma omp for private(i, tmp)
+		for(i=0; i<insize; i++){
+			tmp = crossproduct(v, 0, i, 9);
+			if(tmp >= 0){
+				upoints[j].setVal(v[i].x(),v[i].y());
+				j++;
+				size_up++;
+				//upoints.push_back(v[i]);
+			}
 		}
-	}
 
 	if(DEBUG == 1){
 		cout << "-----------------\n";
-		for(i = 0; i< upoints.size() ; i++){
+		for(i = 0; i< size_up ; i++){
 			cout<< upoints[i].x() << "," << upoints[i].y() << "\n";
 		}
 	}
 
-	upperch(upoints);
+	//upperch(upoints);
 }
 
 int main(int argc, char *argv[])
@@ -125,11 +142,14 @@ int main(int argc, char *argv[])
 
 	insize = atoi(argv[1]);
 	points_2d *p;
-	vector<points_2d> points;
-	points.reserve(insize);
+	points_2d *points;
+	points = new points_2d[insize];
 	p = new points_2d[insize];
 	double tmp; //to store the result of the test cross product
 	bool val; //to store if it is clock wise or not ...TRUE = CW FALSE = CCW
+
+	nthreads = omp_get_max_threads();
+	omp_set_num_threads(nthreads);
 
 	p[0].setVal(0,0);
 	p[1].setVal(0.5,0.5);
@@ -149,7 +169,7 @@ int main(int argc, char *argv[])
 	}
 
 	for(int i=0; i<insize;i++){
-		points.push_back(p[i]);
+		points[i] = p[i];
 	}
 
 	if(DEBUG == 1){
@@ -159,7 +179,15 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	#pragma omp parallel
+	{
+		tid = omp_get_thread_num();
+		printf("hello form thread : %d \n",tid); //because cout is not thread safe ....
+	}
+
 	hullupperpoints(points);
+	upperch(upoints);
+
 	return 0;
 
 }
